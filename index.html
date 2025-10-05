@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home Expenses with Category & Filter & PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    body { background:#1e1e1e; color:#fff; font-family:Arial, sans-serif; }
+    .card { background:#2d2d2d; padding:20px; border-radius:8px; max-width:1100px; margin:20px auto; }
+    input, select { background:#3a3a3a; color:#fff; border:1px solid #555; padding:4px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; background:#3a3a3a; }
+    table th, table td { border:1px solid #555; padding:6px; text-align:center; }
+    table th { background:#555; }
+    button.delete-item-main { background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; }
+    .filter-row > * { margin-right:10px; }
+    .btn-small { padding:4px 8px; border-radius:4px; }
+  
+</style>
+</head>
+<body>
+
+
+<!-- 📋 Material List - as Modal -->
+<div id="material-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+  <div class="bg-gray-800 p-6 rounded w-full max-w-xl relative">
+    <button onclick="closeMaterialPopup()" class="absolute top-2 right-2 text-red-400 text-xl">❌</button>
+    
+    <!-- Material List Content (your existing content) -->
+    <h2 class="text-2xl font-bold mb-4">📋 Material List</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+      <input id="mat-item" class="p-2 rounded bg-gray-700 w-full" placeholder="Item"/>
+      <input id="mat-qty" type="number" min="1" value="1" class="p-2 rounded bg-gray-700 w-full" placeholder="Qty"/>
+      <input id="mat-unit" class="p-2 rounded bg-gray-700 w-full" placeholder="Unit"/>
+    </div>
+    <button onclick="addMaterial()" class="px-3 py-2 bg-green-600 rounded mb-2 w-full md:w-auto">➕ Add</button>
+    <ul id="mat-list" class="space-y-1"></ul>
+    <div class="flex flex-col md:flex-row gap-2 mt-3">
+      <button onclick="shareMaterial()" class="px-4 py-2 bg-blue-600 rounded w-full md:w-auto">📤 Share</button>
+      <button onclick="clearMaterial()" class="px-4 py-2 bg-red-600 rounded w-full md:w-auto">🗑 Clear</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="card">
+  <h2 class="text-2xl font-bold mb-4">🏠 Home Expenses</h2>
+  <div style="margin-left:auto;font-weight:700">Application Developed by Vaibhav Enterprises</div>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="text-green-500 font-semibold">Total In: ₹<span id="h-in-total">0.00</span></div>
+    <div class="text-white-500 font-semibold text-right">Total Out: ₹<span id="h-out-total">0.00</span></div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label class="block mb-1">Select Account</label>
+      <select id="h-bank" class="p-2 rounded w-full">
+        <option value="SBI Bank">SBI Bank</option>
+        <option value="Kotak Bank">Kotak Bank</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1">Payment Type</label>
+      <select id="h-type" class="p-2 rounded w-full">
+        <option value="in">Payment In</option>
+        <option value="out">Payment Out</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="in-fields" class="grid md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label class="block mb-1">Date</label>
+      <input type="date" id="h-in-date" class="p-2 rounded w-full"/>
+    </div>
+    <div>
+      <label class="block mb-1">Particular</label>
+      <input id="h-particular" class="p-2 rounded w-full" placeholder="Enter Particular"/>
+    </div>
+    <div>
+      <label class="block mb-1">Amount</label>
+      <input type="number" id="h-amount" class="p-2 rounded w-full" placeholder="₹ Amount"/>
+    </div>
+  </div>
+
+ <div id="out-fields" style="display:none">
+  <div class="flex items-center mb-2">
+    <label class="block mb-1 mr-2">Category</label>
+    <!-- input ऐवजी select -->
+    <select id="h-category" class="p-2 rounded bg-gray-700 flex-1">
+      <option value="">--Select--</option>
+    </select>
+    <button type="button" id="btn-add-cat" class="btn-small bg-green-600 ml-2">＋</button>
+    <button type="button" id="btn-del-cat" class="btn-small bg-red-600 ml-1">❌</button>
+  </div>
+
+
+
+    <div class="overflow-x-auto">
+      <table id="main-items-table" class="min-w-full text-sm">
+        <thead>
+          <tr><th>Date</th><th>Particular</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th><th>X</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button onclick="addExpenseRow()" class="mt-2 px-3 py-2 bg-yellow-600 rounded w-full md:w-auto">+ Add Item</button>
+  </div>
+
+  <div class="flex gap-2 mt-4 flex-wrap">
+    <button onclick="saveHExpense()" class="px-4 py-2 bg-green-600 rounded text-white">💾 Save</button>
+    <button onclick="fetchHExpenses()" class="px-4 py-2 bg-blue-600 rounded text-white">🔄 Load</button>
+    <button onclick="clearHExpenseForm()" class="px-4 py-2 bg-red-600 rounded text-white">❌ Clear</button>
+    <button onclick="showMaterialPopup()" class="px-4 py-2 bg-purple-600 rounded text-white">
+    📋 Show Material List
+    <button onclick="toggleSavedData()" class="px-4 py-2 bg-yellow-600 rounded text-white">
+  📂 Show Saved Data
+ </div>
+</div>
+
+<!-- Filter Section -->
+<div class="card">
+  <h3 class="text-lg font-semibold mb-2">🔍 Filter Expenses</h3>
+  <div class="filter-row mb-4 flex flex-wrap">
+    <div>
+      <label>Date From:</label>
+      <input type="date" id="flt-date-from" class="p-1 rounded"/>
+    </div>
+    <div>
+      <label>Date To:</label>
+      <input type="date" id="flt-date-to" class="p-1 rounded"/>
+    </div>
+    <div>
+      <label>Month:</label>
+      <input type="month" id="flt-month" class="p-1 rounded"/>
+    </div>
+    <div>
+      <label>Payment Type:</label>
+      <select id="flt-type" class="p-1 rounded">
+        <option value="">All</option>
+        <option value="in">In</option>
+        <option value="out">Out</option>
+      </select>
+    </div>
+    <div>
+      <label>Category:</label>
+      <select id="flt-cat" class="p-1 rounded"><option value="">All</option></select>
+    </div>
+    <button id="btn-apply-f" class="px-3 py-1 bg-blue-600 rounded">Apply Filter</button>
+    <button id="btn-export-pdf" class="px-3 py-1 bg-purple-600 rounded">📄 Export PDF</button>
+  </div>
+</div>
+
+<!-- Saved List -->
+<div id="saved-section" class="card hidden">
+  <h3 class="text-lg font-semibold mt-2 mb-2">📂 Saved H Expenses</h3>
+  <div id="h-expense-list" class="space-y-2"></div>
+  <h3 class="text-lg font-semibold mt-6 mb-2">📊 In & Out Chart</h3>
+  <canvas id="catChart" height="200"></canvas>
+</div>
+
+
+<script>
+ 
+ 
+/* -------- Material List -------- */
+function addMaterial(){
+  const item=document.getElementById("mat-item").value.trim();
+  const qty=document.getElementById("mat-qty").value.trim();
+  const unit=document.getElementById("mat-unit").value.trim();
+  if(!item||!qty||!unit){ alert("Enter Item, Qty, Unit"); return; }
+  const ul=document.getElementById("mat-list");
+  const li=document.createElement("li");
+  li.className="flex justify-between bg-gray-700 p-2 rounded";
+  li.innerHTML=`<span>${item} - ${qty} ${unit}</span>
+    <button onclick="this.parentElement.remove()" class="text-red-400">❌</button>`;
+  ul.appendChild(li);
+  document.getElementById("mat-item").value="";
+  document.getElementById("mat-qty").value="1";
+  document.getElementById("mat-unit").value="";
+}
+function shareMaterial(){
+  let items=[]; document.querySelectorAll("#mat-list li span").forEach(el=>items.push(el.textContent));
+  if(items.length===0){ alert("Empty"); return; }
+  const text="📝 Material List:\n"+items.map((it,i)=>`${i+1}. ${it}`).join("\n");
+  const url="https://wa.me/?text="+encodeURIComponent(text);
+  window.open(url,"_blank"); clearMaterial();
+}
+function clearMaterial(){ document.getElementById("mat-list").innerHTML=""; }
+
+/* -------- Home Expenses -------- */
+document.getElementById("h-type").addEventListener("change", toggleForm);
+function toggleForm(){
+  const type=document.getElementById("h-type").value;
+  document.getElementById("in-fields").style.display=(type==="in")?"grid":"none";
+  document.getElementById("out-fields").style.display=(type==="out")?"block":"none";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Toggle In / Out forms
+  document.getElementById("h-type").addEventListener("change", toggleForm);
+  function toggleForm(){
+    const type = document.getElementById("h-type").value;
+    document.getElementById("in-fields").style.display = (type === "in") ? "grid" : "none";
+    document.getElementById("out-fields").style.display = (type === "out") ? "block" : "none";
+  }
+
+    // Category management
+  function loadCategories(){
+    let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+    const sel = document.getElementById("flt-cat");
+    sel.innerHTML = `<option value="">All</option>`;
+    cats.forEach(c => {
+      let o = document.createElement("option");
+      o.value = c; 
+      o.innerText = c;
+      sel.appendChild(o);
+    });
+  }
+
+document.getElementById("btn-add-cat").onclick = () => {
+  let v = prompt("नवीन Category टाका:").trim();   // input box नसल्यानं prompt
+  if(!v){ return; }
+  let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+  if(!cats.includes(v)){
+    cats.push(v);
+    localStorage.setItem("hCats", JSON.stringify(cats));
+  }
+  loadCategories();
+  document.getElementById("h-category").value = v; // auto select नवी category
+}
+
+document.getElementById("btn-del-cat").onclick = () => {
+  let v = document.getElementById("h-category").value;
+  if(!v){ alert("Select category to delete"); return; }
+  let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+  cats = cats.filter(c => c !== v);
+  localStorage.setItem("hCats", JSON.stringify(cats));
+  loadCategories();
+}
+
+
+
+function loadCategories(){
+  let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+  
+  // filter select
+  const sel1 = document.getElementById("flt-cat");
+  sel1.innerHTML = `<option value="">All</option>`;
+  cats.forEach(c => {
+    let o = document.createElement("option");
+    o.value = c; 
+    o.innerText = c;
+    sel1.appendChild(o);
+  });
+
+  // category select
+  const sel2 = document.getElementById("h-category");
+  sel2.innerHTML = `<option value="">--Select--</option>`;
+  cats.forEach(c => {
+    let o = document.createElement("option");
+    o.value = c; 
+    o.innerText = c;
+    sel2.appendChild(o);
+  });
+}
+
+
+  // Add expense row under out
+  function addExpenseRow(){
+    const tbody = document.querySelector("#main-items-table tbody");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><input type="date" class="bg-gray-700 text-white p-1"/></td>
+      <td><input type="text" class="bg-gray-700 text-white p-1"/></td>
+      <td><input type="number" value="1" class="bg-gray-700 text-white p-1 w-16"/></td>
+      <td><input type="text" class="bg-gray-700 text-white p-1 w-16"/></td>
+      <td><input type="number" value="0" class="bg-gray-700 text-white p-1 w-20"/></td>
+      <td><input type="number" class="bg-gray-700 text-white p-1 w-20" readonly/></td>
+      <td><button onclick="this.closest('tr').remove(); recalcOutAmount()" class="delete-item-main">×</button></td>`;
+    tbody.appendChild(tr);
+    const qty = tr.children[2].firstChild, rate = tr.children[4].firstChild, amt = tr.children[5].firstChild;
+    function calc(){
+      amt.value = ((+qty.value || 0) * (+rate.value || 0)).toFixed(2);
+      recalcOutAmount();
+    }
+    qty.addEventListener("input", calc);
+    rate.addEventListener("input", calc);
+  }
+  function recalcOutAmount(){
+    let total = 0;
+    document.querySelectorAll("#main-items-table tbody tr").forEach(tr => {
+      total += +tr.children[5].firstChild.value || 0;
+    });
+    document.getElementById("h-amount").value = total.toFixed(2);
+  }
+
+  // Save expense
+  function saveHExpense(){
+    const type = document.getElementById("h-type").value;
+    const bank = document.getElementById("h-bank").value;
+    const part = document.getElementById("h-particular").value.trim();
+    const amt = +document.getElementById("h-amount").value || 0;
+    const dateIn = document.getElementById("h-in-date").value;
+    let items = [];
+    if(type === "out"){
+      document.querySelectorAll("#main-items-table tbody tr").forEach(tr => {
+        items.push({
+          date: tr.children[0].firstChild.value,
+          particular: tr.children[1].firstChild.value,
+          qty: tr.children[2].firstChild.value,
+          unit: tr.children[3].firstChild.value,
+          rate: tr.children[4].firstChild.value,
+          amount: tr.children[5].firstChild.value
+        });
+      });
+    }
+    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+    let catval = document.getElementById("h-category").value.trim();
+    data.push({
+      id: Date.now(),
+      type, bank, part, amt, dateIn, items,
+      cat: catval
+    });
+    localStorage.setItem("hExpenses", JSON.stringify(data));
+    fetchHExpenses();
+    clearHExpenseForm();
+  }
+
+  // Fetch & display (with optional filtering)
+  function fetchHExpenses(filtered = null){
+    const list = document.getElementById("h-expense-list");
+    list.innerHTML = "";
+    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+    if(filtered) data = filtered;
+    let totalIn = 0, totalOut = 0;
+  data.forEach(r => {
+  if(r.type === "in") totalIn += r.amt;
+  else totalOut += r.amt;
+
+  const div = document.createElement("div");
+  div.className = "p-2 bg-gray-800 rounded expense-entry";
+  div.setAttribute("data-date", r.dateIn || "");
+  div.setAttribute("data-part", r.part || "");
+  div.setAttribute("data-type", r.type || "");
+  div.setAttribute("data-cat", r.cat || "");
+  div.setAttribute("data-amt", r.amt || "");
+
+  let itemsHTML = "";
+  if(r.items && r.items.length){
+    itemsHTML = "<table><tr><th>Date</th><th>Part</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amt</th></tr>";
+    r.items.forEach(it => {
+      itemsHTML += `<tr><td>${it.date}</td><td>${it.particular}</td><td>${it.qty}</td><td>${it.unit}</td><td>${it.rate}</td><td>${it.amount}</td></tr>`;
+    });
+    itemsHTML += "</table>";
+  }
+  div.innerHTML = `<div><b>${r.part||"(no particular)"}</b> (${r.type}) - ₹${r.amt} ${r.dateIn||""} [${r.cat||""}]</div>
+    ${itemsHTML}
+    <button onclick="loadExpense(${r.id})" class="bg-blue-600 px-2 py-1 rounded mr-2">Load</button>
+    <button onclick="deleteExpense(${r.id})" class="bg-red-600 px-2 py-1 rounded">Delete</button>`;
+  list.appendChild(div);
+});
+
+    document.getElementById("h-in-total").innerText = totalIn.toFixed(2);
+    document.getElementById("h-out-total").innerText = totalOut.toFixed(2);
+    renderChart(data);
+  }
+
+  function deleteExpense(id){
+    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+    data = data.filter(r => r.id !== id);
+    localStorage.setItem("hExpenses", JSON.stringify(data));
+    fetchHExpenses();
+  }
+
+  function loadExpense(id){
+    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+    let r = data.find(x => x.id === id);
+    if(!r) return;
+    document.getElementById("h-type").value = r.type;
+    toggleForm();
+    document.getElementById("h-bank").value = r.bank;
+    document.getElementById("h-particular").value = r.part || "";
+    document.getElementById("h-amount").value = r.amt || 0;
+    document.getElementById("h-in-date").value = r.dateIn || "";
+    document.querySelector("#main-items-table tbody").innerHTML = "";
+    if(r.items && r.items.length){
+      r.items.forEach(it => {
+        addExpenseRow();
+        let tr = document.querySelector("#main-items-table tbody tr:last-child");
+        tr.children[0].firstChild.value = it.date;
+        tr.children[1].firstChild.value = it.particular;
+        tr.children[2].firstChild.value = it.qty;
+        tr.children[3].firstChild.value = it.unit;
+        tr.children[4].firstChild.value = it.rate;
+        tr.children[5].firstChild.value = it.amount;
+      });
+    }
+    document.getElementById("h-category").value = r.cat || "";
+  }
+
+  function clearHExpenseForm(){
+    document.getElementById("h-particular").value = "";
+    document.getElementById("h-amount").value = "";
+    document.getElementById("h-in-date").value = "";
+    document.getElementById("h-category").value = "";
+    document.querySelector("#main-items-table tbody").innerHTML = "";
+  }
+
+  // Chart
+  let hChart;
+  function renderChart(data){
+    const map = {};
+    let totalIn = 0;
+    data.forEach(r => {
+      if(r.type === "out"){
+        let cat = r.cat || "Others";
+        map[cat] = (map[cat] || 0) + r.amt;
+      }
+      if(r.type === "in"){
+        totalIn += r.amt;
+      }
+    });
+    if(totalIn > 0) map["Payment In"] = totalIn;
+    const ctx = document.getElementById("catChart").getContext("2d");
+    if(hChart) hChart.destroy();
+    hChart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: Object.keys(map),
+        datasets: [{
+          data: Object.values(map),
+          backgroundColor: ["#22c55e","#ef4444","#3b82f6","#f59e0b","#8b5cf6"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+  }
+
+  // Filter logic
+  document.getElementById("btn-apply-f").onclick = () => {
+    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+    const from = document.getElementById("flt-date-from").value;
+    const to = document.getElementById("flt-date-to").value;
+    const mon = document.getElementById("flt-month").value;
+    const ftype = document.getElementById("flt-type").value;
+    const fcat = document.getElementById("flt-cat").value;
+
+    let filtered = data.filter(r => {
+      let ok = true;
+      // by type
+      if(ftype && r.type !== ftype) ok = false;
+      // by category
+      if(fcat && r.cat !== fcat) ok = false;
+      // by date range
+      if(from && r.dateIn < from) ok = false;
+      if(to && r.dateIn > to) ok = false;
+      // by month
+      if(mon){
+        let ym = r.dateIn.slice(0,7); // YYYY‑MM
+        if(ym !== mon) ok = false;
+      }
+      return ok;
+    });
+    fetchHExpenses(filtered);
+  };
+
+  // Export filtered or all as PDF
+// Export filtered or all as PDF
+document.getElementById("btn-export-pdf").onclick = () => {
+  const list = document.getElementById("h-expense-list");
+  const entries = list.querySelectorAll(".expense-entry");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(14);
+  doc.text("Payment In & Expenses", 14, 15);
+
+  let rows = [];
+  let totalIn = 0;
+  let totalOut = 0;
+
+  entries.forEach(div => {
+    const date = div.getAttribute("data-date") || "";
+    const part = div.getAttribute("data-part") || "";
+    const type = div.getAttribute("data-type") || "";
+    const cat  = div.getAttribute("data-cat") || "";
+    const amt  = parseFloat(div.getAttribute("data-amt") || "0");
+
+    if(type === "in") {
+      totalIn += amt;
+      rows.push([date, part, "-", "-", "-", amt.toFixed(2), type.toUpperCase(), cat]);
+    }
+
+    const table = div.querySelector("table");
+    if(type === "out" && table){
+      // skip summary line, only include item details
+      table.querySelectorAll("tr").forEach((tr,i)=>{
+        if(i===0) return;
+        const cells = Array.from(tr.querySelectorAll("td")).map(td=>td.innerText);
+        if(cells.length >= 6) {
+          totalOut += parseFloat(cells[5]) || 0;
+          rows.push(cells.concat(["OUT", cat]));
+        }
+      });
+    } else if(type === "out" && !table){
+      totalOut += amt;
+      rows.push([date, part, "-", "-", "-", amt.toFixed(2), "OUT", cat]);
+    }
+  });
+
+doc.autoTable({
+  startY: 25,
+  head: [['Date','Particular','Qty','Unit','Rate','Amount','Type','Category']],
+  body: rows,
+  theme: 'grid',
+  styles: { fontSize: 10 },
+  headStyles: { fillColor: [41, 128, 185] },
+  didParseCell: function (data) {
+    const col = data.column.index;
+    const row = data.row;
+    const cell = data.cell;
+
+    const typeText = row.raw[6]; // Type column (IN/OUT)
+
+    // Green color for IN type
+    if (typeText === "IN" && (col === 5 || col === 6)) {
+      cell.styles.textColor = [34, 197, 94]; // green
+      cell.styles.fontStyle = 'bold';
+    }
+
+    // Red color for OUT type
+    if (typeText === "OUT" && (col === 5 || col === 6)) {
+      cell.styles.textColor = [239, 68, 68]; // red
+      cell.styles.fontStyle = 'bold';
+    }
+  }
+});
+
+
+  // 🔻 Totals after table
+  let finalY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(12);
+  doc.text(`Total IN: ${totalIn.toFixed(2)}`, 14, finalY);
+  doc.text(`Total OUT: ${totalOut.toFixed(2)}`, 14, finalY + 6);
+  doc.text(`Balance: ${(totalIn - totalOut).toFixed(2)}`, 14, finalY + 12);
+
+  doc.save("expenses.pdf");
+};
+
+
+function showMaterialPopup() {
+  document.getElementById("material-modal").classList.remove("hidden");
+  document.getElementById("material-modal").classList.add("flex");
+}
+
+function closeMaterialPopup() {
+  document.getElementById("material-modal").classList.add("hidden");
+  document.getElementById("material-modal").classList.remove("flex");
+}
+
+
+
+let isSavedVisible = false;
+function toggleSavedData() {
+  const sec = document.getElementById("saved-section");
+  const btn = event.target;
+
+  isSavedVisible = !isSavedVisible;
+  if (isSavedVisible) {
+    sec.classList.remove("hidden");
+    btn.innerText = "📂 Hide Saved Data";
+  } else {
+    sec.classList.add("hidden");
+    btn.innerText = "📂 Show Saved Data";
+  }
+}
+
+
+
+
+
+
+// ---- Page Load वर call कर ----
+window.onload = () => {
+  loadCategories();
+  fetchHExpenses();   // localStorage मधून data पुन्हा load कर
+  toggleForm();
+};
+
+
+</script>
+
+</body>
+</html>
