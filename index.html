@@ -2,56 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Home Expenses with Category & Filter & PDF</title>
+  <title>Home Expenses (Sheet Sync)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
   <style>
     body { background:#1e1e1e; color:#fff; font-family:Arial, sans-serif; }
     .card { background:#2d2d2d; padding:20px; border-radius:8px; max-width:1100px; margin:20px auto; }
-    input, select { background:#3a3a3a; color:#fff; border:1px solid #555; padding:4px; }
+    input, select { background:#3a3a3a; color:#fff; border:1px solid #555; padding:6px; }
     table { width:100%; border-collapse:collapse; margin-top:10px; background:#3a3a3a; }
     table th, table td { border:1px solid #555; padding:6px; text-align:center; }
     table th { background:#555; }
-    button.delete-item-main { background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; }
-    .filter-row > * { margin-right:10px; }
+    .delete-item-main { background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; }
     .btn-small { padding:4px 8px; border-radius:4px; }
-  
-</style>
+  </style>
 </head>
 <body>
-
-
-<!-- 📋 Material List - as Modal -->
-<div id="material-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-  <div class="bg-gray-800 p-6 rounded w-full max-w-xl relative">
-    <button onclick="closeMaterialPopup()" class="absolute top-2 right-2 text-red-400 text-xl">❌</button>
-    
-    <!-- Material List Content (your existing content) -->
-    <h2 class="text-2xl font-bold mb-4">📋 Material List</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-      <input id="mat-item" class="p-2 rounded bg-gray-700 w-full" placeholder="Item"/>
-      <input id="mat-qty" type="number" min="1" value="1" class="p-2 rounded bg-gray-700 w-full" placeholder="Qty"/>
-      <input id="mat-unit" class="p-2 rounded bg-gray-700 w-full" placeholder="Unit"/>
-    </div>
-    <button onclick="addMaterial()" class="px-3 py-2 bg-green-600 rounded mb-2 w-full md:w-auto">➕ Add</button>
-    <ul id="mat-list" class="space-y-1"></ul>
-    <div class="flex flex-col md:flex-row gap-2 mt-3">
-      <button onclick="shareMaterial()" class="px-4 py-2 bg-blue-600 rounded w-full md:w-auto">📤 Share</button>
-      <button onclick="clearMaterial()" class="px-4 py-2 bg-red-600 rounded w-full md:w-auto">🗑 Clear</button>
-    </div>
-  </div>
-</div>
-
-
-
-
 <div class="card">
-  <h2 class="text-2xl font-bold mb-4">🏠 Home Expenses</h2>
+  <h2 class="text-2xl font-bold mb-4">🏠 Home Expenses (Sheet Sync)</h2>
   <div style="margin-left:auto;font-weight:700">Application Developed by Vaibhav Enterprises</div>
+
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="text-green-500 font-semibold">Total In: ₹<span id="h-in-total">0.00</span></div>
     <div class="text-white-500 font-semibold text-right">Total Out: ₹<span id="h-out-total">0.00</span></div>
@@ -61,9 +33,9 @@
     <div>
       <label class="block mb-1">Select Account</label>
       <select id="h-bank" class="p-2 rounded w-full">
-        <option value="SBI Bank">SBI Bank</option>
-        <option value="Kotak Bank">Kotak Bank</option>
-        <option value="HDFC Bank">HDFC Bank</option>
+      <option value="Kotak Bank">Kotak Bank</option>  
+      <option value="SBI Bank">SBI Bank</option>
+      <option value="HDFC Bank">HDFC Bank</option>
       </select>
     </div>
     <div>
@@ -90,18 +62,15 @@
     </div>
   </div>
 
- <div id="out-fields" style="display:none">
-  <div class="flex items-center mb-2">
-    <label class="block mb-1 mr-2">Category</label>
-    <!-- input ऐवजी select -->
-    <select id="h-category" class="p-2 rounded bg-gray-700 flex-1">
-      <option value="">--Select--</option>
-    </select>
-    <button type="button" id="btn-add-cat" class="btn-small bg-green-600 ml-2">＋</button>
-    <button type="button" id="btn-del-cat" class="btn-small bg-red-600 ml-1">❌</button>
-  </div>
-
-
+  <div id="out-fields" style="display:none">
+    <div class="flex items-center mb-2">
+      <label class="block mb-1 mr-2">Category</label>
+      <select id="h-category" class="p-2 rounded bg-gray-700 flex-1">
+        <option value="">--Select--</option>
+      </select>
+      <button type="button" id="btn-add-cat" class="btn-small bg-green-600 ml-2">＋</button>
+      <button type="button" id="btn-del-cat" class="btn-small bg-red-600 ml-1">❌</button>
+    </div>
 
     <div class="overflow-x-auto">
       <table id="main-items-table" class="min-w-full text-sm">
@@ -116,49 +85,29 @@
 
   <div class="flex gap-2 mt-4 flex-wrap">
     <button onclick="saveHExpense()" class="px-4 py-2 bg-green-600 rounded text-white">💾 Save</button>
-    <button onclick="fetchHExpenses()" class="px-4 py-2 bg-blue-600 rounded text-white">🔄 Load</button>
+    <button onclick="syncFromSheet()" class="px-4 py-2 bg-blue-600 rounded text-white">🔄 Sync (Sheet → App)</button>
     <button onclick="clearHExpenseForm()" class="px-4 py-2 bg-red-600 rounded text-white">❌ Clear</button>
-    <button onclick="showMaterialPopup()" class="px-4 py-2 bg-purple-600 rounded text-white">
-    📋 Show Material List
-    <button onclick="toggleSavedData()" class="px-4 py-2 bg-yellow-600 rounded text-white">
-  📂 Show Saved Data
- </div>
+    <button onclick="toggleSavedData()" class="px-4 py-2 bg-yellow-600 rounded text-white">📂 Show Saved Data</button>
+    <button onclick="showMaterialPopup()" class="px-4 py-2 bg-purple-600 rounded text-white">📋 Material</button>
+  </div>
 </div>
 
-<!-- Filter Section -->
+<!-- Filter & saved -->
 <div class="card">
-  <h3 class="text-lg font-semibold mb-2">🔍 Filter Expenses</h3>
+  <h3 class="text-lg font-semibold mb-2">🔍 Filter & Export</h3>
   <div class="filter-row mb-4 flex flex-wrap">
-    <div>
-      <label>Date From:</label>
-      <input type="date" id="flt-date-from" class="p-1 rounded"/>
+    <div><label>Date From:</label><input type="date" id="flt-date-from" class="p-1 rounded"/></div>
+    <div><label>Date To:</label><input type="date" id="flt-date-to" class="p-1 rounded"/></div>
+    <div><label>Month:</label><input type="month" id="flt-month" class="p-1 rounded"/></div>
+    <div><label>Payment Type:</label>
+      <select id="flt-type" class="p-1 rounded"><option value="">All</option><option value="in">In</option><option value="out">Out</option></select>
     </div>
-    <div>
-      <label>Date To:</label>
-      <input type="date" id="flt-date-to" class="p-1 rounded"/>
-    </div>
-    <div>
-      <label>Month:</label>
-      <input type="month" id="flt-month" class="p-1 rounded"/>
-    </div>
-    <div>
-      <label>Payment Type:</label>
-      <select id="flt-type" class="p-1 rounded">
-        <option value="">All</option>
-        <option value="in">In</option>
-        <option value="out">Out</option>
-      </select>
-    </div>
-    <div>
-      <label>Category:</label>
-      <select id="flt-cat" class="p-1 rounded"><option value="">All</option></select>
-    </div>
+    <div><label>Category:</label><select id="flt-cat" class="p-1 rounded"><option value="">All</option></select></div>
     <button id="btn-apply-f" class="px-3 py-1 bg-blue-600 rounded">Apply Filter</button>
     <button id="btn-export-pdf" class="px-3 py-1 bg-purple-600 rounded">📄 Export PDF</button>
   </div>
 </div>
 
-<!-- Saved List -->
 <div id="saved-section" class="card hidden">
   <h3 class="text-lg font-semibold mt-2 mb-2">📂 Saved H Expenses</h3>
   <div id="h-expense-list" class="space-y-2"></div>
@@ -166,328 +115,495 @@
   <canvas id="catChart" height="200"></canvas>
 </div>
 
+<!-- Material modal (same as before) -->
+<div id="material-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+  <div class="bg-gray-800 p-6 rounded w-full max-w-xl relative">
+    <button onclick="closeMaterialPopup()" class="absolute top-2 right-2 text-red-400 text-xl">❌</button>
+    <h2 class="text-2xl font-bold mb-4">📋 Material List</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+      <input id="mat-item" class="p-2 rounded bg-gray-700 w-full" placeholder="Item"/>
+      <input id="mat-qty" type="number" min="1" value="1" class="p-2 rounded bg-gray-700 w-full" placeholder="Qty"/>
+      <input id="mat-unit" class="p-2 rounded bg-gray-700 w-full" placeholder="Unit"/>
+    </div>
+    <button onclick="addMaterial()" class="px-3 py-2 bg-green-600 rounded mb-2 w-full md:w-auto">➕ Add</button>
+    <ul id="mat-list" class="space-y-1"></ul>
+    <div class="flex flex-col md:flex-row gap-2 mt-3">
+      <button onclick="shareMaterial()" class="px-4 py-2 bg-blue-600 rounded w-full md:w-auto">📤 Share</button>
+      <button onclick="clearMaterial()" class="px-4 py-2 bg-red-600 rounded w-full md:w-auto">🗑 Clear</button>
+    </div>
+  </div>
+</div>
 
 <script>
- 
- 
-/* -------- Material List -------- */
-function addMaterial(){
-  const item=document.getElementById("mat-item").value.trim();
-  const qty=document.getElementById("mat-qty").value.trim();
-  const unit=document.getElementById("mat-unit").value.trim();
-  if(!item||!qty||!unit){ alert("Enter Item, Qty, Unit"); return; }
-  const ul=document.getElementById("mat-list");
-  const li=document.createElement("li");
-  li.className="flex justify-between bg-gray-700 p-2 rounded";
-  li.innerHTML=`<span>${item} - ${qty} ${unit}</span>
-    <button onclick="this.parentElement.remove()" class="text-red-400">❌</button>`;
-  ul.appendChild(li);
-  document.getElementById("mat-item").value="";
-  document.getElementById("mat-qty").value="1";
-  document.getElementById("mat-unit").value="";
-}
-function shareMaterial(){
-  let items=[]; document.querySelectorAll("#mat-list li span").forEach(el=>items.push(el.textContent));
-  if(items.length===0){ alert("Empty"); return; }
-  const text="📝 Material List:\n"+items.map((it,i)=>`${i+1}. ${it}`).join("\n");
-  const url="https://wa.me/?text="+encodeURIComponent(text);
-  window.open(url,"_blank"); clearMaterial();
-}
+/* ----------------- CONFIG ----------------- */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg0F6HTRB64JherUQwU70I562MK-5FkAd7vvqXKJ_CL4TAoi9h88G95s_smcrtJgw2/exec";
+
+let editingId = null;   // global editor-id marker
+
+/* -------- Material List functions (unchanged) -------- */
+function addMaterial(){ const item=document.getElementById("mat-item").value.trim(); const qty=document.getElementById("mat-qty").value.trim(); const unit=document.getElementById("mat-unit").value.trim(); if(!item||!qty||!unit){ alert("Enter Item, Qty, Unit"); return; } const ul=document.getElementById("mat-list"); const li=document.createElement("li"); li.className="flex justify-between bg-gray-700 p-2 rounded"; li.innerHTML=`<span>${item} - ${qty} ${unit}</span><button onclick="this.parentElement.remove()" class="text-red-400">❌</button>`; ul.appendChild(li); document.getElementById("mat-item").value=""; document.getElementById("mat-qty").value="1"; document.getElementById("mat-unit").value=""; }
+function shareMaterial(){ let items=[]; document.querySelectorAll("#mat-list li span").forEach(el=>items.push(el.textContent)); if(items.length===0){ alert("Empty"); return; } const text="📝 Material List:\n"+items.map((it,i)=>`${i+1}. ${it}`).join("\n"); const url="https://wa.me/?text="+encodeURIComponent(text); window.open(url,"_blank"); clearMaterial(); }
 function clearMaterial(){ document.getElementById("mat-list").innerHTML=""; }
+function showMaterialPopup(){ document.getElementById("material-modal").classList.remove("hidden"); document.getElementById("material-modal").classList.add("flex"); }
+function closeMaterialPopup(){ document.getElementById("material-modal").classList.add("hidden"); document.getElementById("material-modal").classList.remove("flex"); }
 
-/* -------- Home Expenses -------- */
+/* -------- UI toggle -------- */
 document.getElementById("h-type").addEventListener("change", toggleForm);
-function toggleForm(){
-  const type=document.getElementById("h-type").value;
-  document.getElementById("in-fields").style.display=(type==="in")?"grid":"none";
-  document.getElementById("out-fields").style.display=(type==="out")?"block":"none";
+function toggleForm(){ const type=document.getElementById("h-type").value; document.getElementById("in-fields").style.display=(type==="in")?"grid":"none"; document.getElementById("out-fields").style.display=(type==="out")?"block":"none"; }
+
+/* -------- Category management (local + Categories sheet sync) -------- */
+async function loadCategories(){
+  let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+
+  try {
+    // fetchCategories should return array of strings
+    const res = await fetch(SCRIPT_URL + "?action=fetchCategories&callback=cb", { method: "POST" });
+    const txt = await res.text();
+    let sheetCats;
+    try {
+      // handle JSONP cb([...]) or plain JSON
+      const cleaned = txt.replace(/^cb\(|\)$/g,"");
+      sheetCats = JSON.parse(cleaned);
+    } catch(e) {
+      sheetCats = [];
+    }
+    if(Array.isArray(sheetCats)) {
+      cats = [...new Set([...cats, ...sheetCats])];
+      localStorage.setItem("hCats", JSON.stringify(cats));
+    }
+  } catch(e){
+    console.warn("Category sheet fetch failed:", e);
+  }
+
+  const sel1 = document.getElementById("flt-cat");
+  const sel2 = document.getElementById("h-category");
+  sel1.innerHTML = `<option value="">All</option>`;
+  sel2.innerHTML = `<option value="">--Select--</option>`;
+  cats.forEach(c => {
+    let o1=document.createElement("option"); o1.value=c; o1.innerText=c; sel1.appendChild(o1);
+    let o2=document.createElement("option"); o2.value=c; o2.innerText=c; sel2.appendChild(o2);
+  });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Toggle In / Out forms
-  document.getElementById("h-type").addEventListener("change", toggleForm);
-  function toggleForm(){
-    const type = document.getElementById("h-type").value;
-    document.getElementById("in-fields").style.display = (type === "in") ? "grid" : "none";
-    document.getElementById("out-fields").style.display = (type === "out") ? "block" : "none";
-  }
-
-    // Category management
-  function loadCategories(){
-    let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
-    const sel = document.getElementById("flt-cat");
-    sel.innerHTML = `<option value="">All</option>`;
-    cats.forEach(c => {
-      let o = document.createElement("option");
-      o.value = c; 
-      o.innerText = c;
-      sel.appendChild(o);
-    });
-  }
-
-document.getElementById("btn-add-cat").onclick = () => {
-  let v = prompt("नवीन Category टाका:").trim();   // input box नसल्यानं prompt
-  if(!v){ return; }
+document.getElementById("btn-add-cat").onclick = async () => {
+  let v = prompt("नवीन Category टाका:") || "";
+  v = v.trim();
+  if(!v) return;
   let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
   if(!cats.includes(v)){
     cats.push(v);
     localStorage.setItem("hCats", JSON.stringify(cats));
+    try {
+      await fetch(SCRIPT_URL + "?action=saveCategory", { method: "POST", body: JSON.stringify({cat:v}) });
+    } catch(e){ console.warn("Category sheet save failed:", e); }
   }
   loadCategories();
-  document.getElementById("h-category").value = v; // auto select नवी category
-}
+  document.getElementById("h-category").value = v;
+};
 
-document.getElementById("btn-del-cat").onclick = () => {
+document.getElementById("btn-del-cat").onclick = async () => {
   let v = document.getElementById("h-category").value;
   if(!v){ alert("Select category to delete"); return; }
   let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
   cats = cats.filter(c => c !== v);
   localStorage.setItem("hCats", JSON.stringify(cats));
+  try {
+    await fetch(SCRIPT_URL + "?action=deleteCategory", { method: "POST", body: JSON.stringify({cat:v}) });
+  } catch(e){ console.warn("Category sheet delete failed:", e); }
   loadCategories();
+};
+
+/* -------- Add / recalc item rows -------- */
+function addExpenseRow(){
+  const tbody = document.querySelector("#main-items-table tbody");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td><input type="date" class="bg-gray-700 text-white p-1"/></td>
+    <td><input type="text" class="bg-gray-700 text-white p-1"/></td>
+    <td><input type="number" value="1" class="bg-gray-700 text-white p-1 w-16"/></td>
+    <td><input type="text" class="bg-gray-700 text-white p-1 w-16"/></td>
+    <td><input type="number" value="0" class="bg-gray-700 text-white p-1 w-20"/></td>
+    <td><input type="number" class="bg-gray-700 text-white p-1 w-20" readonly/></td>
+    <td><button onclick="this.closest('tr').remove(); recalcOutAmount()" class="delete-item-main">×</button></td>`;
+  tbody.appendChild(tr);
+  const qty = tr.children[2].firstChild, rate = tr.children[4].firstChild, amt = tr.children[5].firstChild;
+  function calc(){ amt.value = ((+qty.value || 0) * (+rate.value || 0)).toFixed(2); recalcOutAmount(); }
+  qty.addEventListener("input", calc); rate.addEventListener("input", calc);
+}
+function recalcOutAmount(){
+  let total = 0;
+  document.querySelectorAll("#main-items-table tbody tr").forEach(tr => {
+    total += +tr.children[5].firstChild.value || 0;
+  });
+  document.getElementById("h-amount").value = total.toFixed(2);
 }
 
-
-
-function loadCategories(){
-  let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
-  
-  // filter select
-  const sel1 = document.getElementById("flt-cat");
-  sel1.innerHTML = `<option value="">All</option>`;
-  cats.forEach(c => {
-    let o = document.createElement("option");
-    o.value = c; 
-    o.innerText = c;
-    sel1.appendChild(o);
-  });
-
-  // category select
-  const sel2 = document.getElementById("h-category");
-  sel2.innerHTML = `<option value="">--Select--</option>`;
-  cats.forEach(c => {
-    let o = document.createElement("option");
-    o.value = c; 
-    o.innerText = c;
-    sel2.appendChild(o);
-  });
-}
-
-
-  // Add expense row under out
-  function addExpenseRow(){
-    const tbody = document.querySelector("#main-items-table tbody");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td><input type="date" class="bg-gray-700 text-white p-1"/></td>
-      <td><input type="text" class="bg-gray-700 text-white p-1"/></td>
-      <td><input type="number" value="1" class="bg-gray-700 text-white p-1 w-16"/></td>
-      <td><input type="text" class="bg-gray-700 text-white p-1 w-16"/></td>
-      <td><input type="number" value="0" class="bg-gray-700 text-white p-1 w-20"/></td>
-      <td><input type="number" class="bg-gray-700 text-white p-1 w-20" readonly/></td>
-      <td><button onclick="this.closest('tr').remove(); recalcOutAmount()" class="delete-item-main">×</button></td>`;
-    tbody.appendChild(tr);
-    const qty = tr.children[2].firstChild, rate = tr.children[4].firstChild, amt = tr.children[5].firstChild;
-    function calc(){
-      amt.value = ((+qty.value || 0) * (+rate.value || 0)).toFixed(2);
-      recalcOutAmount();
-    }
-    qty.addEventListener("input", calc);
-    rate.addEventListener("input", calc);
+/* -------- LOCAL STORAGE helpers (primary UI source) -------- */
+function saveLocalAndUI(entry){
+  let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+  // replace if same id exists, else push
+  const idx = data.findIndex(d => String(d.id) === String(entry.id));
+  if(idx >= 0) {
+    data[idx] = entry;
+  } else {
+    data.push(entry);
   }
-  function recalcOutAmount(){
-    let total = 0;
+  localStorage.setItem("hExpenses", JSON.stringify(data));
+  fetchHExpenses();
+  // reset editingId after save
+  editingId = null;
+}
+
+/* -------- SAVE: local + sheet -------- */
+async function saveHExpense(){
+  const type = document.getElementById("h-type").value;
+  const bank = document.getElementById("h-bank").value;
+  const part = document.getElementById("h-particular").value.trim();
+  const amt = +document.getElementById("h-amount").value || 0;
+  const dateIn = document.getElementById("h-in-date").value;
+  const cat = document.getElementById("h-category").value.trim();
+
+  if(type === "out" && !cat){
+    alert("❗ कृपया Category निवडा");
+    return;
+  }
+
+  let items = [];
+  if(type === "out"){
     document.querySelectorAll("#main-items-table tbody tr").forEach(tr => {
-      total += +tr.children[5].firstChild.value || 0;
-    });
-    document.getElementById("h-amount").value = total.toFixed(2);
-  }
-
-  // Save expense
-  function saveHExpense(){
-    const type = document.getElementById("h-type").value;
-    const bank = document.getElementById("h-bank").value;
-    const part = document.getElementById("h-particular").value.trim();
-    const amt = +document.getElementById("h-amount").value || 0;
-    const dateIn = document.getElementById("h-in-date").value;
-    let items = [];
-    if(type === "out"){
-      document.querySelectorAll("#main-items-table tbody tr").forEach(tr => {
-        items.push({
-          date: tr.children[0].firstChild.value,
-          particular: tr.children[1].firstChild.value,
-          qty: tr.children[2].firstChild.value,
-          unit: tr.children[3].firstChild.value,
-          rate: tr.children[4].firstChild.value,
-          amount: tr.children[5].firstChild.value
-        });
+      items.push({
+        date: tr.children[0].firstChild.value,
+        particular: tr.children[1].firstChild.value,
+        qty: tr.children[2].firstChild.value,
+        unit: tr.children[3].firstChild.value,
+        rate: tr.children[4].firstChild.value,
+        amount: tr.children[5].firstChild.value
       });
-    }
-    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
-    let catval = document.getElementById("h-category").value.trim();
-    data.push({
-      id: Date.now(),
-      type, bank, part, amt, dateIn, items,
-      cat: catval
     });
-    localStorage.setItem("hExpenses", JSON.stringify(data));
-    fetchHExpenses();
-    clearHExpenseForm();
   }
 
-  // Fetch & display (with optional filtering)
-  function fetchHExpenses(filtered = null){
-    const list = document.getElementById("h-expense-list");
-    list.innerHTML = "";
-    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
-    if(filtered) data = filtered;
-    let totalIn = 0, totalOut = 0;
-  data.forEach(r => {
-  if(r.type === "in") totalIn += r.amt;
-  else totalOut += r.amt;
+  // if editingId exists, preserve it, else generate new
+  const id = editingId || Date.now();
+  const entry = { id, type, bank, part, amt, dateIn, cat, items };
 
-  const div = document.createElement("div");
-  div.className = "p-2 bg-gray-800 rounded expense-entry";
-  div.setAttribute("data-date", r.dateIn || "");
-  div.setAttribute("data-part", r.part || "");
-  div.setAttribute("data-type", r.type || "");
-  div.setAttribute("data-cat", r.cat || "");
-  div.setAttribute("data-amt", r.amt || "");
+  // Save local UI (replace-if-existing)
+  saveLocalAndUI(entry);
 
-  let itemsHTML = "";
-  if(r.items && r.items.length){
-    itemsHTML = "<table><tr><th>Date</th><th>Part</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amt</th></tr>";
-    r.items.forEach(it => {
-      itemsHTML += `<tr><td>${it.date}</td><td>${it.particular}</td><td>${it.qty}</td><td>${it.unit}</td><td>${it.rate}</td><td>${it.amount}</td></tr>`;
-    });
-    itemsHTML += "</table>";
-  }
-  div.innerHTML = `<div><b>${r.part||"(no particular)"}</b> (${r.type}) - ₹${r.amt} ${r.dateIn||""} [${r.cat||""}]</div>
-    ${itemsHTML}
-    <button onclick="loadExpense(${r.id})" class="bg-blue-600 px-2 py-1 rounded mr-2">Load</button>
-    <button onclick="deleteExpense(${r.id})" class="bg-red-600 px-2 py-1 rounded">Delete</button>`;
-  list.appendChild(div);
-});
-
-    document.getElementById("h-in-total").innerText = totalIn.toFixed(2);
-    document.getElementById("h-out-total").innerText = totalOut.toFixed(2);
-    renderChart(data);
+  // Save to Google Sheet (best-effort)
+  try{
+    await fetch(SCRIPT_URL + "?action=saveExpense", { method: "POST", body: JSON.stringify(entry) });
+  } catch(err){
+    console.warn("Sheet save failed (will remain in localStorage):", err);
   }
 
-  function deleteExpense(id){
-    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
-    data = data.filter(r => r.id !== id);
-    localStorage.setItem("hExpenses", JSON.stringify(data));
-    fetchHExpenses();
+  // Category save
+  if(cat){
+    let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+    if(!cats.includes(cat)){ cats.push(cat); localStorage.setItem("hCats", JSON.stringify(cats)); try{ await fetch(SCRIPT_URL + "?action=saveCategory", { method: "POST", body: JSON.stringify({cat}) }); }catch(e){console.warn("cat save failed", e);} loadCategories(); }
   }
 
-  function loadExpense(id){
-    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
-    let r = data.find(x => x.id === id);
-    if(!r) return;
-    document.getElementById("h-type").value = r.type;
-    toggleForm();
-    document.getElementById("h-bank").value = r.bank;
-    document.getElementById("h-particular").value = r.part || "";
-    document.getElementById("h-amount").value = r.amt || 0;
-    document.getElementById("h-in-date").value = r.dateIn || "";
-    document.querySelector("#main-items-table tbody").innerHTML = "";
-    if(r.items && r.items.length){
-      r.items.forEach(it => {
-        addExpenseRow();
-        let tr = document.querySelector("#main-items-table tbody tr:last-child");
-        tr.children[0].firstChild.value = it.date;
-        tr.children[1].firstChild.value = it.particular;
-        tr.children[2].firstChild.value = it.qty;
-        tr.children[3].firstChild.value = it.unit;
-        tr.children[4].firstChild.value = it.rate;
-        tr.children[5].firstChild.value = it.amount;
-      });
+  clearHExpenseForm();
+}
+
+/* -------- Date parsing helpers -------- */
+/*
+  parseSheetDate: accepts:
+   - Date object
+   - "2025-10-06" or "2025-10-06T05:30:00Z" (ISO)
+   - "04/10/2025" or "04/10/2025 05:30:00" (dd/mm/yyyy)
+   - numeric Excel date (if ever) -> treat as string
+  returns "YYYY-MM-DD" or ""
+*/
+function parseSheetDate(val) {
+  if(!val && val !== 0) return "";
+  // If it's already a Date object
+  if(val instanceof Date && !isNaN(val)) {
+    // Build local date YYYY-MM-DD (no timezone shift)
+    const yyyy = val.getFullYear();
+    const mm = String(val.getMonth()+1).padStart(2,'0');
+    const dd = String(val.getDate()).padStart(2,'0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  // if numeric-like (Excel timestamp passed as number string) — ignore for now
+  if(typeof val === "number") {
+    const d = new Date(val);
+    if(!isNaN(d)) return parseSheetDate(d);
+    return "";
+  }
+  // string handling
+  let s = String(val).trim();
+  // If contains a space with time, isolate date part
+  if(s.indexOf(' ') !== -1) s = s.split(' ')[0];
+  // If ISO-like (contains '-')
+  if(s.indexOf('-') !== -1) {
+    // Try Date.parse
+    const d = new Date(s);
+    if(!isNaN(d)) return parseSheetDate(d);
+    // fallback: take first 10 chars if looks like YYYY-MM-DD
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  }
+  // If uses '/', assume dd/mm/yyyy (Indian style)
+  if(s.indexOf('/') !== -1) {
+    const parts = s.split('/');
+    if(parts.length >= 3) {
+      // dd/mm/yyyy
+      const dd = parts[0].padStart(2,'0');
+      const mm = parts[1].padStart(2,'0');
+      const yyyy = parts[2].slice(0,4);
+      // Normalize: if yyyy is first (mm/dd/yyyy) unlikely for user — we assume dd/mm/yyyy
+      if(yyyy.length === 4) return `${yyyy}-${mm}-${dd}`;
     }
-    document.getElementById("h-category").value = r.cat || "";
   }
+  // fallback: try Date.parse generic
+  const d2 = new Date(s);
+  if(!isNaN(d2)) return parseSheetDate(d2);
+  return "";
+}
 
-  function clearHExpenseForm(){
-    document.getElementById("h-particular").value = "";
-    document.getElementById("h-amount").value = "";
-    document.getElementById("h-in-date").value = "";
-    document.getElementById("h-category").value = "";
-    document.querySelector("#main-items-table tbody").innerHTML = "";
-  }
+/* -------- FETCH from sheet, group rows by ID -> save to local and UI -------- */
+async function syncFromSheet(){
+  try{
+    const res = await fetch(SCRIPT_URL + "?action=fetchExpense&callback=cb", { method: "POST" });
+    const txt = await res.text();
+    // Accept both JSONP cb(...) and plain JSON
+    let rows;
+    try {
+      rows = JSON.parse(txt.replace(/^cb\(|\)$/g,""));
+    } catch(err) {
+      try { rows = JSON.parse(txt); } catch(e) { rows = []; console.warn("Failed to parse sheet rows", e); }
+    }
+    if(!Array.isArray(rows)) rows = [];
 
-  // Chart
-  let hChart;
-  function renderChart(data){
     const map = {};
-    let totalIn = 0;
-    data.forEach(r => {
-      if(r.type === "out"){
-        let cat = r.cat || "Others";
-        map[cat] = (map[cat] || 0) + r.amt;
+    rows.forEach(raw => {
+      // Normalize keys: sometimes header names might have spaces or different case.
+      // We'll try to access common names
+      const r = {};
+      for(const k in raw) {
+        // normalize header: trim and remove extra spaces
+        const nk = String(k).trim();
+        r[nk] = raw[k];
       }
-      if(r.type === "in"){
-        totalIn += r.amt;
+      // find ID from possible header names (ID, Id, id)
+      const rawID = r.ID || r.Id || r.id || r['ID '] || r[' Id'] || "";
+      const idVal = String(rawID || "").trim();
+      const id = idVal || ("id_" + Math.random().toString(36).slice(2,9));
+      // type may be stored as Type/ type
+      const typeVal = (r.Type || r.type || r['Type '] || "").toString().trim().toLowerCase();
+      const type = (typeVal === "out" ? "out" : "in"); // default in if anything else
+
+      // Bank, Particular, Amount, Date, Category, Qty, Unit, Rate
+      const bank = r.Bank || r.bank || "";
+      const particular = r.Particular || r[' Particular'] || r.particular || "";
+      const amount = r.Amount || r.amount || r.Amt || r.amt || 0;
+      const dateRaw = r.Date || r.date || "";
+      const category = r.Category || r.category || "";
+      const qty = r.Qty || r.qty || r.Qty || "";
+      const unit = r.Unit || r.unit || "";
+      const rate = r.Rate || r.rate || "";
+
+      if(!map[id]) {
+        map[id] = {
+          id: id,
+          type: type,
+          bank: bank,
+          part: particular || "",
+          dateIn: parseSheetDate(dateRaw),
+          cat: category || "",
+          items: [],
+          amt: 0
+        };
+      }
+
+      // If this row looks like an item row (has qty/rate/amount)
+      const isItemRow = (qty || unit || rate || amount) && (type === "out");
+      if(isItemRow) {
+        const itemDate = parseSheetDate(dateRaw) || map[id].dateIn || "";
+        const itemPart = (r.Particular || r.particular || "").toString();
+        map[id].items.push({
+          date: itemDate,
+          particular: itemPart || "",
+          qty: qty || "",
+          unit: unit || "",
+          rate: rate || "",
+          amount: amount || ""
+        });
+        map[id].amt += Number(amount || 0);
+        // if main particular empty, consider filling from item
+        if(!map[id].part && itemPart) map[id].part = itemPart;
+      } else {
+        // Not an item row: treat as summary/main row
+        map[id].amt += Number(amount || 0);
+        // if particular present and map.part empty, set it
+        if(particular && !map[id].part) map[id].part = particular;
+        // if date present and map.dateIn empty, set it
+        if(parseSheetDate(dateRaw) && !map[id].dateIn) map[id].dateIn = parseSheetDate(dateRaw);
       }
     });
-    if(totalIn > 0) map["Payment In"] = totalIn;
-    const ctx = document.getElementById("catChart").getContext("2d");
-    if(hChart) hChart.destroy();
-    hChart = new Chart(ctx, {
-      type: "pie",
-      data: {
-        labels: Object.keys(map),
-        datasets: [{
-          data: Object.values(map),
-          backgroundColor: ["#22c55e","#ef4444","#3b82f6","#f59e0b","#8b5cf6"]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" }
-        }
-      }
+
+    // Convert to array
+    const arr = Object.values(map).map(x => {
+      x.amt = Number(x.amt) || 0;
+      return x;
+    });
+
+    // Overwrite localStorage (no duplicates)
+    localStorage.setItem("hExpenses", JSON.stringify(arr));
+
+    // Category sync from arr (also use fetchCategories separately in loadCategories)
+    let cats = JSON.parse(localStorage.getItem("hCats")||"[]");
+    arr.forEach(e => { if(e.cat && !cats.includes(e.cat)) cats.push(e.cat); });
+    localStorage.setItem("hCats", JSON.stringify(cats));
+    await loadCategories();
+
+    fetchHExpenses();
+    alert("🔁 Synced from sheet: " + arr.length + " entries.");
+  } catch(e){
+    console.error("❌ Sync error:", e);
+    alert("Sync failed (check console).");
+  }
+}
+
+/* -------- Fetch & display (from localStorage) -------- */
+function fetchHExpenses(filtered=null){
+  const list = document.getElementById("h-expense-list"); list.innerHTML = "";
+  let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+  if(filtered) data = filtered;
+  let totalIn = 0, totalOut = 0;
+
+  data.forEach(r => {
+    if(r.type === "in") totalIn += Number(r.amt||0);
+    else totalOut += Number(r.amt||0);
+
+    const div = document.createElement("div");
+    div.className = "p-2 bg-gray-800 rounded expense-entry";
+    div.setAttribute("data-date", r.dateIn || "");
+    div.setAttribute("data-part", r.part || "");
+    div.setAttribute("data-type", r.type || "");
+    div.setAttribute("data-cat", r.cat || "");
+    div.setAttribute("data-amt", r.amt || 0);
+
+    let itemsHTML = "";
+    if(r.items && r.items.length){
+      itemsHTML = "<table><tr><th>Date</th><th>Part</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amt</th></tr>";
+      r.items.forEach(it => {
+        itemsHTML += `<tr><td>${it.date||""}</td><td>${it.particular||""}</td><td>${it.qty||""}</td><td>${it.unit||""}</td><td>${it.rate||""}</td><td>${it.amount||""}</td></tr>`;
+      });
+      itemsHTML += "</table>";
+    }
+
+    div.innerHTML = `<div><b>${r.part||"(no particular)"}</b> (${r.type}) - ₹${Number(r.amt||0).toFixed(2)} ${r.dateIn||""} [${r.cat||""}]</div>
+      ${itemsHTML}
+      <div style="margin-top:6px">
+        <button onclick="loadExpense('${r.id}')" class="bg-blue-600 px-2 py-1 rounded mr-2">Load</button>
+        <button onclick="deleteExpense('${r.id}')" class="bg-red-600 px-2 py-1 rounded">Delete</button>
+      </div>`;
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("h-in-total").innerText = totalIn.toFixed(2);
+  document.getElementById("h-out-total").innerText = totalOut.toFixed(2);
+  renderChart(data);
+}
+
+/* -------- Delete (local + sheet) -------- */
+async function deleteExpense(id){
+  if(!confirm("Delete this entry?")) return;
+  let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+  data = data.filter(r => String(r.id) !== String(id));
+  localStorage.setItem("hExpenses", JSON.stringify(data));
+  try {
+    await fetch(SCRIPT_URL + "?action=deleteExpense", { method: "POST", body: JSON.stringify({ id }) });
+  } catch(e){
+    console.warn("Sheet delete failed:", e);
+  }
+  fetchHExpenses();
+}
+
+/* -------- Load single expense into form -------- */
+function loadExpense(id){
+  let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
+  const r = data.find(x => String(x.id) === String(id));
+  if(!r) return;
+
+  editingId = r.id;   // mark for editing
+
+  document.getElementById("h-type").value = r.type || "in"; toggleForm();
+  document.getElementById("h-bank").value = r.bank || "";
+  document.getElementById("h-particular").value = r.part || "";
+  document.getElementById("h-amount").value = r.amt || 0;
+  document.getElementById("h-in-date").value = r.dateIn || "";
+  document.getElementById("h-category").value = r.cat || "";
+  document.querySelector("#main-items-table tbody").innerHTML = "";
+  if(r.items && r.items.length){
+    r.items.forEach(it => {
+      addExpenseRow();
+      let tr = document.querySelector("#main-items-table tbody tr:last-child");
+      tr.children[0].firstChild.value = it.date || "";
+      tr.children[1].firstChild.value = it.particular || "";
+      tr.children[2].firstChild.value = it.qty || 1;
+      tr.children[3].firstChild.value = it.unit || "";
+      tr.children[4].firstChild.value = it.rate || 0;
+      tr.children[5].firstChild.value = it.amount || 0;
     });
   }
+}
 
-  // Filter logic
-  document.getElementById("btn-apply-f").onclick = () => {
-    let data = JSON.parse(localStorage.getItem("hExpenses") || "[]");
-    const from = document.getElementById("flt-date-from").value;
-    const to = document.getElementById("flt-date-to").value;
-    const mon = document.getElementById("flt-month").value;
-    const ftype = document.getElementById("flt-type").value;
-    const fcat = document.getElementById("flt-cat").value;
+/* -------- Clear form -------- */
+function clearHExpenseForm(){
+  editingId = null;
+  document.getElementById("h-particular").value = "";
+  document.getElementById("h-amount").value = "";
+  document.getElementById("h-in-date").value = "";
+  document.getElementById("h-category").value = "";
+  document.querySelector("#main-items-table tbody").innerHTML = "";
+}
 
-    let filtered = data.filter(r => {
-      let ok = true;
-      // by type
-      if(ftype && r.type !== ftype) ok = false;
-      // by category
-      if(fcat && r.cat !== fcat) ok = false;
-      // by date range
-      if(from && r.dateIn < from) ok = false;
-      if(to && r.dateIn > to) ok = false;
-      // by month
-      if(mon){
-        let ym = r.dateIn.slice(0,7); // YYYY‑MM
-        if(ym !== mon) ok = false;
-      }
-      return ok;
-    });
-    fetchHExpenses(filtered);
-  };
+/* -------- Chart -------- */
+let hChart;
+function renderChart(data){
+  const map = {};
+  let totalIn = 0;
+  data.forEach(r => {
+    if(r.type === "out"){
+      let cat = r.cat || "Others";
+      map[cat] = (map[cat]||0) + Number(r.amt||0);
+    } else if(r.type === "in"){
+      totalIn += Number(r.amt||0);
+    }
+  });
+  if(totalIn > 0) map["Payment In"] = totalIn;
+  const ctx = document.getElementById("catChart").getContext("2d");
+  if(hChart) hChart.destroy();
+  hChart = new Chart(ctx, {
+    type: "pie",
+    data: { labels: Object.keys(map), datasets: [{ data: Object.values(map) }] },
+    options: { responsive:true, plugins:{ legend:{ position:"bottom" } } }
+  });
+}
 
-  // Export filtered or all as PDF
+/* -------- Filter button -------- */
+document.getElementById("btn-apply-f").onclick = () => {
+  let data = JSON.parse(localStorage.getItem("hExpenses")||"[]");
+  const from = document.getElementById("flt-date-from").value;
+  const to = document.getElementById("flt-date-to").value;
+  const mon = document.getElementById("flt-month").value;
+  const ftype = document.getElementById("flt-type").value;
+  const fcat = document.getElementById("flt-cat").value;
+
+  let filtered = data.filter(r => {
+    let ok = true;
+    if(ftype && r.type !== ftype) ok = false;
+    if(fcat && r.cat !== fcat) ok = false;
+    if(from && (r.dateIn || "").slice(0,10) < from) ok = false;
+    if(to && (r.dateIn || "").slice(0,10) > to) ok = false;
+    if(mon){ let ym = (r.dateIn||"").slice(0,7); if(ym !== mon) ok = false; }
+    return ok;
+  });
+  fetchHExpenses(filtered);
+};
+
+/* -------- Export filtered/all as PDF (keeps old behavior) -------- */
 // Export filtered or all as PDF
 document.getElementById("btn-export-pdf").onclick = () => {
   const list = document.getElementById("h-expense-list");
@@ -570,48 +686,20 @@ doc.autoTable({
   doc.save("expenses.pdf");
 };
 
+/* -------- Toggle saved-section -------- */
+let isSavedVisible=false;
+function toggleSavedData(){ const sec=document.getElementById("saved-section"); isSavedVisible=!isSavedVisible; if(isSavedVisible){ sec.classList.remove("hidden"); } else { sec.classList.add("hidden"); } }
 
-function showMaterialPopup() {
-  document.getElementById("material-modal").classList.remove("hidden");
-  document.getElementById("material-modal").classList.add("flex");
-}
-
-function closeMaterialPopup() {
-  document.getElementById("material-modal").classList.add("hidden");
-  document.getElementById("material-modal").classList.remove("flex");
-}
-
-
-
-let isSavedVisible = false;
-function toggleSavedData() {
-  const sec = document.getElementById("saved-section");
-  const btn = event.target;
-
-  isSavedVisible = !isSavedVisible;
-  if (isSavedVisible) {
-    sec.classList.remove("hidden");
-    btn.innerText = "📂 Hide Saved Data";
-  } else {
-    sec.classList.add("hidden");
-    btn.innerText = "📂 Show Saved Data";
-  }
-}
-
-
-
-
-
-
-// ---- Page Load वर call कर ----
+/* -------- Startup -------- */
 window.onload = () => {
   loadCategories();
-  fetchHExpenses();   // localStorage मधून data पुन्हा load कर
+  if(!(localStorage.getItem("hExpenses"))){
+    syncFromSheet();
+  } else {
+    fetchHExpenses();
+  }
   toggleForm();
 };
-
-
 </script>
-
 </body>
 </html>
